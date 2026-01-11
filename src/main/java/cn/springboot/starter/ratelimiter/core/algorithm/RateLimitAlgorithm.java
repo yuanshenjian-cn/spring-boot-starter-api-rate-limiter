@@ -1,4 +1,4 @@
-package cn.springboot.starter.ratelimiter.algorithm;
+package cn.springboot.starter.ratelimiter.core.algorithm;
 
 /**
  * 限流算法接口

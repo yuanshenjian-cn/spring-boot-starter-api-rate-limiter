@@ -1,14 +1,12 @@
-package cn.springboot.starter.ratelimiter.autoconfig;
+package cn.springboot.starter.ratelimiter.config;
 
-import cn.springboot.starter.ratelimiter.advisor.RateLimiterAspect;
-import cn.springboot.starter.ratelimiter.storage.RedisRateLimitScriptFactory;
+import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitScriptFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
@@ -21,7 +19,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 @Configuration
 @ConditionalOnProperty(prefix = "rate-limiter", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(RateLimiterProperties.class)
-@ComponentScan(basePackages = "cn.springboot.starter.ratelimiter.advisor")
+@ComponentScan(basePackages = "cn.springboot.starter.ratelimiter.core")
 public class RateLimiterAutoConfiguration {
 
     /**

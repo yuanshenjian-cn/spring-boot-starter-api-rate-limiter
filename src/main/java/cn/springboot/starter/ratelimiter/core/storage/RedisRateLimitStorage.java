@@ -1,4 +1,4 @@
-package cn.springboot.starter.ratelimiter.storage;
+package cn.springboot.starter.ratelimiter.core.storage;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;

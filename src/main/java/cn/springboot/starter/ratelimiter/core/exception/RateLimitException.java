@@ -1,4 +1,4 @@
-package cn.springboot.starter.ratelimiter.exception;
+package cn.springboot.starter.ratelimiter.core.exception;
 
 /**
  * 限流异常类

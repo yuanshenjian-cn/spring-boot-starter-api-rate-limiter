@@ -1,6 +1,6 @@
-package cn.springboot.starter.ratelimiter.storage;
+package cn.springboot.starter.ratelimiter.core.storage;
 
-import cn.springboot.starter.ratelimiter.algorithm.RateLimitAlgorithm;
+import cn.springboot.starter.ratelimiter.core.algorithm.RateLimitAlgorithm;
 
 /**
  * 基于内存的限流存储实现

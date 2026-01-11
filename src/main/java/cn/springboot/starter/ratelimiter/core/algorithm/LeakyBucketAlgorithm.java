@@ -1,4 +1,4 @@
-package cn.springboot.starter.ratelimiter.algorithm;
+package cn.springboot.starter.ratelimiter.core.algorithm;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;

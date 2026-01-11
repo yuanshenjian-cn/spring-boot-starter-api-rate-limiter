@@ -1,8 +1,8 @@
 package cn.springboot.starter.ratelimiter;
 
-import cn.springboot.starter.ratelimiter.algorithm.FixedWindowCounterAlgorithm;
-import cn.springboot.starter.ratelimiter.algorithm.LeakyBucketAlgorithm;
-import cn.springboot.starter.ratelimiter.exception.RateLimitException;
+import cn.springboot.starter.ratelimiter.core.algorithm.FixedWindowCounterAlgorithm;
+import cn.springboot.starter.ratelimiter.core.algorithm.LeakyBucketAlgorithm;
+import cn.springboot.starter.ratelimiter.core.exception.RateLimitException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,6 +1,6 @@
-package cn.springboot.starter.ratelimiter.example;
+package cn.springboot.starter.ratelimiter.demo;
 
-import cn.springboot.starter.ratelimiter.advisor.RateLimiter;
+import cn.springboot.starter.ratelimiter.core.RateLimiter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
