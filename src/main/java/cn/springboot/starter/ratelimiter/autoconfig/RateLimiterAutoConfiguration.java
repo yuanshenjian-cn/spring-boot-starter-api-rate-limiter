@@ -54,9 +54,9 @@ public class RateLimiterAutoConfiguration {
     }
 
     /**
-     * 创建限流器属性 Bean
-     *
-     * @return 限流器属性
+     * 创建限流器切面
+     * @param redisTemplate redis模板
+     * @return 限流器切面
      */
     @Bean
     @ConditionalOnBean(StringRedisTemplate.class)
