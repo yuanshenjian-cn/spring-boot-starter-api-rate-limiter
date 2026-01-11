@@ -2,6 +2,7 @@ package cn.springboot.starter.ratelimiter.autoconfig;
 
 import cn.springboot.starter.ratelimiter.advisor.RateLimiterAspect;
 import cn.springboot.starter.ratelimiter.storage.RedisRateLimitScriptFactory;
+import org.aspectj.lang.annotation.Aspect;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
