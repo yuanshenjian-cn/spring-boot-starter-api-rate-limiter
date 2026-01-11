@@ -21,7 +21,7 @@
 <dependency>
     <groupId>io.github.yuanshenjian-cn</groupId>
     <artifactId>api-rate-limiter-spring-boot-starter</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
