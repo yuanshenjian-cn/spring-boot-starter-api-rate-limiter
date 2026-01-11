@@ -2,12 +2,13 @@ package cn.springboot.starter.ratelimiter.autoconfig;
 
 import cn.springboot.starter.ratelimiter.advisor.RateLimiterAspect;
 import cn.springboot.starter.ratelimiter.storage.RedisRateLimitScriptFactory;
-import org.aspectj.lang.annotation.Aspect;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
@@ -18,8 +19,9 @@ import org.springframework.data.redis.core.script.RedisScript;
  * @author Yuan Shenjian
  */
 @Configuration
-@EnableConfigurationProperties(RateLimiterProperties.class)
 @ConditionalOnProperty(prefix = "rate-limiter", name = "enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(RateLimiterProperties.class)
+@ComponentScan(basePackages = "cn.springboot.starter.ratelimiter.advisor")
 public class RateLimiterAutoConfiguration {
 
     /**
@@ -52,16 +54,5 @@ public class RateLimiterAutoConfiguration {
     @Bean
     public RateLimiterProperties rateLimiterProperties() {
         return new RateLimiterProperties();
-    }
-
-    /**
-     * 创建限流器切面
-     * @param redisTemplate redis模板
-     * @return 限流器切面
-     */
-    @Bean
-    @ConditionalOnBean(StringRedisTemplate.class)
-    public RateLimiterAspect rateLimiterAspect(StringRedisTemplate redisTemplate) {
-        return new RateLimiterAspect(redisTemplate);
     }
 }
