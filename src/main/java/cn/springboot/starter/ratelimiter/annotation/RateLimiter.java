@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for API rate limiting.
- * This annotation can be applied to methods to enable rate limiting functionality.
+ * API 限流注解
+ * 该注解可以应用于方法上以启用限流功能
  *
  * @author Yuan Shenjian
  */
@@ -16,78 +16,78 @@ import java.lang.annotation.Target;
 public @interface RateLimiter {
 
     /**
-     * The key for rate limiting, supports SpEL expressions.
-     * @return the rate limiting key
+     * 限流键，支持 SpEL 表达式
+     * @return 限流键
      */
     String key() default "";
 
     /**
-     * The rate limiting algorithm to use.
-     * @return the algorithm
+     * 要使用的限流算法
+     * @return 算法
      */
     Algorithm algorithm() default Algorithm.TOKEN_BUCKET;
 
     /**
-     * The storage type for rate limiting data.
-     * @return the storage type
+     * 限流数据的存储类型
+     * @return 存储类型
      */
     StorageType storageType() default StorageType.LOCAL_MEMORY;
 
     /**
-     * The maximum number of requests allowed within the time window.
-     * @return the limit
+     * 时间窗口内允许的最大请求数
+     * @return 限制数量
      */
     long limit() default 10;
 
     /**
-     * The time window size in seconds.
-     * @return the window size in seconds
+     * 时间窗口大小（单位：秒）
+     * @return 窗口大小（秒）
      */
     long windowSize() default 60;
 
     /**
-     * The capacity of the bucket (for token bucket algorithm).
-     * @return the bucket capacity
+     * 桶容量（用于令牌桶算法）
+     * @return 桶容量
      */
     long capacity() default 10;
 
     /**
-     * The refill rate (for token bucket) or leak rate (for leaky bucket).
-     * @return the refill/leak rate
+     * 填充速率（用于令牌桶）或泄漏速率（用于漏桶）
+     * @return 填充/泄漏速率
      */
     long refillRate() default 1;
 
     /**
-     * The number of permits required for each request.
-     * @return the number of permits
+     * 每个请求所需的许可数量
+     * @return 许可数量
      */
     int permits() default 1;
 
     /**
-     * The message to return when rate limit is exceeded.
-     * @return the error message
+     * 超过限流时返回的消息
+     * @return 错误消息
      */
-    String message() default "Too many requests, please try again later.";
+    String message() default "请求过于频繁，请稍后再试";
 
     /**
-     * Enum representing different rate limiting algorithms.
+     * 限流算法的枚举
      */
     enum Algorithm {
-        /** Token bucket algorithm */
+        /** 令牌桶算法 */
         TOKEN_BUCKET,
-        /** Leaky bucket algorithm */
+        /** 漏桶算法 */
         LEAKY_BUCKET,
-        /** Fixed window counter algorithm */
+        /** 固定窗口计数器算法 */
         FIXED_WINDOW
     }
 
     /**
-     * Enum representing different storage types for rate limiting data.
+     * 限流数据存储类型的枚举
      */
     enum StorageType {
-        /** Local memory storage */
+        /** 本地内存存储 */
         LOCAL_MEMORY,
-        /** Redis storage */
+        /** Redis 存储 */
         REDIS
     }
 }

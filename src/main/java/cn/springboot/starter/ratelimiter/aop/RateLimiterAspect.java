@@ -13,6 +13,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.StandardReflectionParameterNameDiscoverer;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,8 +26,8 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 
 /**
- * Aspect for implementing rate limiting functionality using annotations.
- * This aspect intercepts methods annotated with {@link RateLimiter} and applies rate limiting logic.
+ * 使用注解实现限流功能的切面
+ * 该切面拦截标记了 {@link RateLimiter} 注解的方法并应用限流逻辑
  *
  * @author Yuan Shenjian
  */
@@ -40,21 +41,21 @@ public class RateLimiterAspect {
     private final StringRedisTemplate redisTemplate;
 
     /**
-     * Constructor for the aspect.
+     * 切面构造函数
      *
-     * @param redisTemplate the Redis template for Redis-based rate limiting
+     * @param redisTemplate 用于基于 Redis 的限流的 Redis 模板（可以为 null）
      */
-    public RateLimiterAspect(StringRedisTemplate redisTemplate) {
+    public RateLimiterAspect(@Autowired(required = false) StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
     /**
-     * Intercepts method calls annotated with {@link RateLimiter} and applies rate limiting logic.
+     * 拦截标记了 {@link RateLimiter} 注解的方法调用并应用限流逻辑
      *
-     * @param point the join point representing the intercepted method
-     * @param rateLimiter the rate limiter annotation
-     * @return the result of the intercepted method if allowed, otherwise throws RateLimitException
-     * @throws Throwable if the intercepted method throws an exception
+     * @param point        表示被拦截方法的连接点
+     * @param rateLimiter 限流注解
+     * @return 如果允许则返回被拦截方法的结果，否则抛出 RateLimitException
+     * @throws Throwable 如果被拦截方法抛出异常
      */
     @Around("@annotation(rateLimiter)")
     public Object around(ProceedingJoinPoint point, RateLimiter rateLimiter) throws Throwable {
@@ -67,7 +68,7 @@ public class RateLimiterAspect {
         };
 
         if (!allowed) {
-            log.warn("Rate limit exceeded for key: {}", key);
+            log.warn("限流超出配额，键值: {}", key);
             throw new RateLimitException(rateLimiter.message());
         }
 
@@ -75,12 +76,12 @@ public class RateLimiterAspect {
     }
 
     /**
-     * Generates a rate limiting key based on the method and arguments.
+     * 基于方法和参数生成限流键
      *
-     * @param method the method being called
-     * @param args the method arguments
-     * @param keyTemplate the key template from the annotation
-     * @return the generated rate limiting key
+     * @param method       被调用的方法
+     * @param args         方法参数
+     * @param keyTemplate 注解中的键模板
+     * @return 生成的限流键
      */
     private String generateKey(Method method, Object[] args, String keyTemplate) {
         if (keyTemplate != null && !keyTemplate.isEmpty()) {
@@ -93,11 +94,11 @@ public class RateLimiterAspect {
     }
 
     /**
-     * Checks rate limiting using local memory storage.
+     * 使用本地内存存储检查限流
      *
-     * @param key the rate limiting key
-     * @param rateLimiter the rate limiter annotation
-     * @return true if the request is allowed, false otherwise
+     * @param key         限流键
+     * @param rateLimiter 限流注解
+     * @return 如果请求被允许则返回 true，否则返回 false
      */
     private boolean checkLocalMemoryRateLimit(String key, RateLimiter rateLimiter) {
         switch (rateLimiter.algorithm()) {
@@ -132,15 +133,17 @@ public class RateLimiterAspect {
     }
 
     /**
-     * Checks rate limiting using Redis storage.
+     * 使用 Redis 存储检查限流
      *
-     * @param key the rate limiting key
-     * @param rateLimiter the rate limiter annotation
-     * @return true if the request is allowed, false otherwise
+     * @param key         限流键
+     * @param rateLimiter 限流注解
+     * @return 如果请求被允许则返回 true，否则返回 false
      */
     private boolean checkRedisRateLimit(String key, RateLimiter rateLimiter) {
         if (redisTemplate == null) {
-            throw new IllegalStateException("Redis template is not available but Redis storage is selected");
+            // 如果用户选择了Redis存储但没有配置Redis，则记录警告并拒绝请求
+            log.warn("选择了Redis存储但Redis模板不可用。键值 {} 的限流将失败", key);
+            return false; // 拒绝请求而不是抛出异常
         }
 
         switch (rateLimiter.algorithm()) {

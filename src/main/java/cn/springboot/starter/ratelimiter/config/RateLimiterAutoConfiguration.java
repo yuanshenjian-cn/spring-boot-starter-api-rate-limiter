@@ -10,8 +10,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
 /**
- * Auto-configuration for the API rate limiter.
- * This class provides automatic configuration for the rate limiting functionality.
+ * API限流器的自动配置
+ * 该类为限流功能提供自动配置
  *
  * @author Yuan Shenjian
  */
@@ -21,9 +21,9 @@ import org.springframework.data.redis.core.script.RedisScript;
 public class RateLimiterAutoConfiguration {
 
     /**
-     * Creates a Redis script for the fixed window counter algorithm.
+     * 为固定窗口计数器算法创建Redis脚本
      *
-     * @return the Redis script for fixed window counter
+     * @return 固定窗口计数器的Redis脚本
      */
     @Bean
     @ConditionalOnBean(StringRedisTemplate.class)
@@ -32,9 +32,9 @@ public class RateLimiterAutoConfiguration {
     }
 
     /**
-     * Creates a Redis script for the token bucket algorithm.
+     * 为令牌桶算法创建Redis脚本
      *
-     * @return the Redis script for token bucket
+     * @return 令牌桶的Redis脚本
      */
     @Bean
     @ConditionalOnBean(StringRedisTemplate.class)
@@ -43,9 +43,9 @@ public class RateLimiterAutoConfiguration {
     }
 
     /**
-     * Creates the rate limiter properties bean.
+     * 创建限流器属性 Bean
      *
-     * @return the rate limiter properties
+     * @return 限流器属性
      */
     @Bean
     public RateLimiterProperties rateLimiterProperties() {

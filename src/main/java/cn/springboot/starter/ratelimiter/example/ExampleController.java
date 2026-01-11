@@ -26,10 +26,7 @@ public class ExampleController {
         storageType = RateLimiter.StorageType.LOCAL_MEMORY,
         limit = 5,
         windowSize = 60,
-        capacity = 5,
-        refillRate = 1,
-        permits = 1,
-        message = "本地内存限流：请求过于频繁，请稍后再试。"
+        message = "本地内存限流：请求过于频繁，请稍后再试"
     )
     public String testLocalMemory(@RequestParam(defaultValue = "1") String userId) {
         return "本地内存限流测试通过，用户ID：" + userId;
@@ -48,8 +45,7 @@ public class ExampleController {
         storageType = RateLimiter.StorageType.REDIS,
         limit = 3,
         windowSize = 60,
-        permits = 1,
-        message = "Redis限流：请求过于频繁，请稍后再试。"
+        message = "Redis限流：请求过于频繁，请稍后再试"
     )
     public String testRedis(@RequestParam(defaultValue = "1") String userId) {
         return "Redis限流测试通过，用户ID：" + userId;
@@ -68,8 +64,7 @@ public class ExampleController {
         storageType = RateLimiter.StorageType.LOCAL_MEMORY,
         limit = 5,
         refillRate = 1,
-        permits = 1,
-        message = "漏水桶限流：请求过于频繁，请稍后再试。"
+        message = "漏水桶限流：请求过于频繁，请稍后再试"
     )
     public String testLeakyBucket(@RequestParam(defaultValue = "1") String userId) {
         return "漏水桶限流测试通过，用户ID：" + userId;

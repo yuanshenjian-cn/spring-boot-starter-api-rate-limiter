@@ -8,7 +8,7 @@
 - **灵活的存储选项**：支持 Redis 作为存储后端，可扩展其他存储方式
 - **注解驱动**：通过简单的注解即可实现接口限流
 - **AOP 支持**：基于 Spring AOP 实现，对业务代码无侵入
-- **可配置**：支持通过 application.yml 进行灵活配置
+- **可配置**：支持通过 application.yml 进行灵活配置，包含配置元数据支持 IDE 自动补全
 - **高性能**：基于 Redis Lua 脚本实现，保证原子性和高性能
 
 ## 快速开始
@@ -25,7 +25,7 @@
 </dependency>
 ```
 
-### 2. 配置 Redis
+### 2. 配置 Redis（如果使用 Redis 存储）
 
 在 `application.yml` 中配置 Redis 连接：
 
@@ -35,25 +35,41 @@ spring:
     host: localhost
     port: 6379
     password: # 如果有密码请填写
-
-rate-limiter:
-  enabled: true  # 启用限流功能
-  default:
-    limit: 10    # 默认限制次数
-    window: 60   # 时间窗口（秒）
+    timeout: 2000ms  # 可选配置
+    lettuce:         # 可选配置
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
 ```
 
-### 3. 在接口上使用注解
+### 3. 配置限流参数（可选）
+
+在 `application.yml` 中配置默认限流参数（如无需特殊配置，可完全省略）：
+
+```yaml
+rate-limiter:
+  enabled: true                           # 是否启用限流，默认 true
+  use-redis-by-default: false             # 是否默认使用Redis存储，false则使用本地内存
+  default-limit: 10                       # 默认限制次数
+  default-window-size: 60                 # 默认时间窗口（秒）
+  default-message: "访问频率过高，请稍后再试"  # 默认限流消息
+```
+
+注意：所有配置都是可选的，如果不配置，将使用内置的默认值。你也可以仅在需要时通过注解指定特定的限流规则。
+
+### 4. 在接口上使用注解
 
 ```java
 @RestController
 public class ApiController {
 
     @RateLimiter(
-        key = "api:limit:user:{{#id}}",  // 限流键，支持 SpEL 表达式
-        limit = 5,                       // 限制次数
-        window = 60,                     // 时间窗口（秒）
-        algorithm = Algorithm.FIXED_WINDOW_COUNTER  // 限流算法
+        key = "'api:user:' + #id",         // 限流键，支持 SpEL 表达式
+        limit = 5,                         // 限制次数
+        windowSize = 60,                   // 时间窗口（秒）
+        algorithm = RateLimiter.Algorithm.FIXED_WINDOW,  // 限流算法
+        storageType = RateLimiter.StorageType.REDIS      // 存储类型
     )
     @GetMapping("/api/user/{id}")
     public String getUser(@PathVariable String id) {
@@ -61,6 +77,10 @@ public class ApiController {
     }
 }
 ```
+
+### 5. IDE 配置提示
+
+本项目已包含配置元数据，添加依赖后 IDE 应该会自动提供 `rate-limiter` 配置项的自动补全提示。
 
 ## 配置选项
 
@@ -110,6 +130,13 @@ rate-limiter:
 - 实现自定义的 `RateLimitStorage` 接口来支持其他存储方式
 - 实现自定义的 `RateLimitAlgorithm` 接口来支持其他限流算法
 - 通过 AOP 扩展限流逻辑
+
+## 注意事项
+
+- 如果在 `@RateLimiter` 注解中指定了 `storageType = StorageType.REDIS`，但应用程序未配置 Redis 连接，
+  则该限流规则将不会生效，并会在日志中记录警告信息。为确保限流功能正常工作，请确保：
+  1. 添加了 Spring Data Redis 依赖
+  2. 正确配置了 Redis 连接参数
 
 ## 发布到 Maven Central
 

@@ -41,27 +41,27 @@ public class RedisRateLimitScriptFactory {
      */
     private static String getFixedWindowCounterScript() {
         return """
-            -- Fixed Window Counter Rate Limiting Script
-            -- KEYS[1] = key for the rate limiter
-            -- ARGV[1] = max requests allowed in the window (limit)
-            -- ARGV[2] = window size in seconds
-            -- ARGV[3] = number of permits to acquire
+            -- 固定窗口计数器限流脚本
+            -- KEYS[1] = 限流器的键
+            -- ARGV[1] = 窗口内允许的最大请求数（限制）
+            -- ARGV[2] = 窗口大小（秒）
+            -- ARGV[3] = 需要获取的许可数
 
             local key = KEYS[1]
             local limit = tonumber(ARGV[1])
             local window_size = tonumber(ARGV[2])
             local permits = tonumber(ARGV[3])
 
-            -- Calculate the current window start time (in seconds)
+            -- 计算当前窗口开始时间（秒）
             local current_time = redis.call('TIME')
             local current_timestamp = tonumber(current_time[1])
             local window_start = math.floor(current_timestamp / window_size) * window_size
 
-            -- Get the current count and window start time stored in Redis
+            -- 获取存储在Redis中的当前计数和窗口开始时间
             local stored_data = redis.call('GET', key)
 
             if stored_data then
-                -- Parse the stored data (format: "count:window_start")
+                -- 解析存储的数据（格式："count:window_start"）
                 local parts = {}
                 for part in string.gmatch(stored_data, '[^:]+') do
                     table.insert(parts, part)
@@ -70,34 +70,34 @@ public class RedisRateLimitScriptFactory {
                 local stored_count = tonumber(parts[1])
                 local stored_window_start = tonumber(parts[2])
 
-                -- Check if we're in a new window
+                -- 检查是否是新窗口
                 if window_start > stored_window_start then
-                    -- Reset the counter for the new window
+                    -- 为新窗口重置计数器
                     redis.call('SET', key, permits .. ':' .. window_start)
-                    -- Check if the permits fit within the limit
+                    -- 检查许可是否在限制范围内
                     if permits <= limit then
-                        return 1  -- Request allowed
+                        return 1  -- 请求允许
                     else
-                        return 0  -- Request denied
+                        return 0  -- 请求拒绝
                     end
                 else
-                    -- Same window, increment the counter
+                    -- 同一窗口，增加计数
                     local new_count = stored_count + permits
                     if new_count <= limit then
                         redis.call('SET', key, new_count .. ':' .. stored_window_start)
-                        return 1  -- Request allowed
+                        return 1  -- 请求允许
                     else
-                        return 0  -- Request denied
+                        return 0  -- 请求拒绝
                     end
                 end
             else
-                -- No data stored yet, initialize with the first request
+                -- 尚未存储数据，使用第一个请求初始化
                 redis.call('SET', key, permits .. ':' .. window_start)
-                -- Check if the permits fit within the limit
+                -- 检查许可是否在限制范围内
                 if permits <= limit then
-                    return 1  -- Request allowed
+                    return 1  -- 请求允许
                 else
-                    return 0  -- Request denied
+                    return 0  -- 请求拒绝
                 end
             end
             """;
@@ -110,18 +110,18 @@ public class RedisRateLimitScriptFactory {
      */
     private static String getTokenBucketScript() {
         return """
-            -- Token Bucket Rate Limiting Script
-            -- KEYS[1] = key for the rate limiter
-            -- ARGV[1] = bucket capacity (max tokens)
-            -- ARGV[2] = refill rate (tokens per second)
-            -- ARGV[3] = number of permits to acquire
+            -- 令牌桶限流脚本
+            -- KEYS[1] = 限流器的键
+            -- ARGV[1] = 桶容量（最大令牌数）
+            -- ARGV[2] = 填充速率（每秒令牌数）
+            -- ARGV[3] = 需要获取的许可数
 
             local key = KEYS[1]
             local capacity = tonumber(ARGV[1])
-            local refill_rate = tonumber(ARGV[2])  -- tokens per second
+            local refill_rate = tonumber(ARGV[2])  -- 每秒令牌数
             local permits = tonumber(ARGV[3])
 
-            -- Get the current bucket state (tokens, last_refill_time) from Redis
+            -- 从Redis获取当前桶状态（令牌数，上次填充时间）
             local bucket_state = redis.call('HMGET', key, 'tokens', 'last_refill_time')
 
             local current_tokens, last_refill_time
@@ -130,31 +130,31 @@ public class RedisRateLimitScriptFactory {
                 current_tokens = tonumber(bucket_state[1])
                 last_refill_time = tonumber(bucket_state[2])
             else
-                -- Initialize the bucket if it doesn't exist
+                -- 如果桶不存在则初始化
                 current_tokens = capacity
                 last_refill_time = tonumber(redis.call('TIME')[1])
                 redis.call('HMSET', key, 'tokens', current_tokens, 'last_refill_time', last_refill_time)
             end
 
-            -- Get current time
+            -- 获取当前时间
             local current_time = tonumber(redis.call('TIME')[1])
 
-            -- Calculate how many tokens to add based on elapsed time
+            -- 根据经过的时间计算要添加的令牌数
             local time_elapsed = current_time - last_refill_time
             local tokens_to_add = math.floor(time_elapsed * refill_rate)
 
-            -- Update the number of tokens, but not exceeding the capacity
+            -- 更新令牌数，但不超过容量
             local new_tokens = math.min(capacity, current_tokens + tokens_to_add)
 
-            -- Check if we have enough tokens for the request
+            -- 检查是否有足够的令牌用于请求
             if new_tokens >= permits then
-                -- Deduct the tokens and update the last refill time
+                -- 扣除令牌并更新上次填充时间
                 redis.call('HMSET', key, 'tokens', new_tokens - permits, 'last_refill_time', current_time)
-                return 1  -- Request allowed
+                return 1  -- 请求允许
             else
-                -- Update the last refill time even if request is denied (to prevent abuse)
+                -- 即使请求被拒绝也要更新上次填充时间（防止滥用）
                 redis.call('HMSET', key, 'tokens', new_tokens, 'last_refill_time', current_time)
-                return 0  -- Request denied
+                return 0  -- 请求拒绝
             end
             """;
     }

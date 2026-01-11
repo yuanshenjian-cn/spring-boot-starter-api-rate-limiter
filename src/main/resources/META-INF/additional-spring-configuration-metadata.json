@@ -1,0 +1,41 @@
+{
+  "groups": [
+    {
+      "name": "rate-limiter",
+      "type": "cn.springboot.starter.ratelimiter.config.RateLimiterProperties",
+      "sourceType": "cn.springboot.starter.ratelimiter.config.RateLimiterProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "rate-limiter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "限流器是否启用.",
+      "defaultValue": true
+    },
+    {
+      "name": "rate-limiter.use-redis-by-default",
+      "type": "java.lang.Boolean",
+      "description": "是否默认启用 Redis 存储。如果为 false，则使用本地内存.",
+      "defaultValue": false
+    },
+    {
+      "name": "rate-limiter.default-limit",
+      "type": "java.lang.Long",
+      "description": "限流的默认限制数量.",
+      "defaultValue": 10
+    },
+    {
+      "name": "rate-limiter.default-window-size",
+      "type": "java.lang.Long",
+      "description": "限流的默认时间窗口（单位：秒）.",
+      "defaultValue": 60
+    },
+    {
+      "name": "rate-limiter.default-message",
+      "type": "java.lang.String",
+      "description": "超过限流时返回的默认消息.",
+      "defaultValue": "请求过于频繁，请稍后再试"
+    }
+  ]
+}
