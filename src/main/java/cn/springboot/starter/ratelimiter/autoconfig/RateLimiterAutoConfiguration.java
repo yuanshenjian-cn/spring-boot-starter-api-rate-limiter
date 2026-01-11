@@ -1,4 +1,4 @@
-package cn.springboot.starter.ratelimiter.config;
+package cn.springboot.starter.ratelimiter.autoconfig;
 
 import cn.springboot.starter.ratelimiter.storage.RedisRateLimitScriptFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

@@ -1,4 +1,4 @@
-package cn.springboot.starter.ratelimiter.config;
+package cn.springboot.starter.ratelimiter.autoconfig;
 
 import lombok.Getter;
 import lombok.Setter;

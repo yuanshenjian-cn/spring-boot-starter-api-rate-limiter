@@ -2,8 +2,8 @@
   "groups": [
     {
       "name": "rate-limiter",
-      "type": "cn.springboot.starter.ratelimiter.config.RateLimiterProperties",
-      "sourceType": "cn.springboot.starter.ratelimiter.config.RateLimiterProperties"
+      "type": "cn.springboot.starter.ratelimiter.autoconfig.RateLimiterProperties",
+      "sourceType": "cn.springboot.starter.ratelimiter.autoconfig.RateLimiterProperties"
     }
   ],
   "properties": [

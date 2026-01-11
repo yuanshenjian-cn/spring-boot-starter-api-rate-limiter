@@ -1,9 +1,9 @@
-package cn.springboot.starter.ratelimiter.aop;
+package cn.springboot.starter.ratelimiter.advisor;
 
 import cn.springboot.starter.ratelimiter.algorithm.FixedWindowCounterAlgorithm;
 import cn.springboot.starter.ratelimiter.algorithm.LeakyBucketAlgorithm;
+import cn.springboot.starter.ratelimiter.algorithm.RateLimitAlgorithm;
 import cn.springboot.starter.ratelimiter.algorithm.TokenBucketAlgorithm;
-import cn.springboot.starter.ratelimiter.annotation.RateLimiter;
 import cn.springboot.starter.ratelimiter.exception.RateLimitException;
 import cn.springboot.starter.ratelimiter.storage.InMemoryRateLimitStorage;
 import cn.springboot.starter.ratelimiter.storage.RedisRateLimitScriptFactory;
@@ -103,7 +103,7 @@ public class RateLimiterAspect {
     private boolean checkLocalMemoryRateLimit(String key, RateLimiter rateLimiter) {
         switch (rateLimiter.algorithm()) {
             case TOKEN_BUCKET:
-                TokenBucketAlgorithm tokenBucketAlgorithm = new TokenBucketAlgorithm(
+                RateLimitAlgorithm tokenBucketAlgorithm = new TokenBucketAlgorithm(
                         rateLimiter.capacity(),
                         rateLimiter.refillRate(),
                         1000
@@ -112,7 +112,7 @@ public class RateLimiterAspect {
                 return tokenBucketStorage.isAllowed(key, rateLimiter.permits());
 
             case LEAKY_BUCKET:
-                LeakyBucketAlgorithm leakyBucketAlgorithm = new LeakyBucketAlgorithm(
+                RateLimitAlgorithm leakyBucketAlgorithm = new LeakyBucketAlgorithm(
                         rateLimiter.limit(),
                         rateLimiter.refillRate()
                 );
@@ -120,7 +120,7 @@ public class RateLimiterAspect {
                 return leakyBucketStorage.isAllowed(key, rateLimiter.permits());
 
             case FIXED_WINDOW:
-                FixedWindowCounterAlgorithm fixedWindowAlgorithm = new FixedWindowCounterAlgorithm(
+                RateLimitAlgorithm fixedWindowAlgorithm = new FixedWindowCounterAlgorithm(
                         rateLimiter.limit(),
                         rateLimiter.windowSize() * 1000
                 );

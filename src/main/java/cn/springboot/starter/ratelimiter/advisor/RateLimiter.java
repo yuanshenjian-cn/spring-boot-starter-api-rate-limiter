@@ -1,4 +1,4 @@
-package cn.springboot.starter.ratelimiter.annotation;
+package cn.springboot.starter.ratelimiter.advisor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
