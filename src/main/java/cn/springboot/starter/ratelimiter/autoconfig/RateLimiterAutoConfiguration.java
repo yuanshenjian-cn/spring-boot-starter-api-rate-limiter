@@ -1,5 +1,6 @@
 package cn.springboot.starter.ratelimiter.autoconfig;
 
+import cn.springboot.starter.ratelimiter.advisor.RateLimiterAspect;
 import cn.springboot.starter.ratelimiter.storage.RedisRateLimitScriptFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -50,5 +51,16 @@ public class RateLimiterAutoConfiguration {
     @Bean
     public RateLimiterProperties rateLimiterProperties() {
         return new RateLimiterProperties();
+    }
+
+    /**
+     * 创建限流器属性 Bean
+     *
+     * @return 限流器属性
+     */
+    @Bean
+    @ConditionalOnBean(StringRedisTemplate.class)
+    public RateLimiterAspect rateLimiterAspect(StringRedisTemplate redisTemplate) {
+        return new RateLimiterAspect(redisTemplate);
     }
 }
