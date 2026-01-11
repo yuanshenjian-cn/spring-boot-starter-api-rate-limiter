@@ -10,6 +10,7 @@
         <relativePath/>
     </parent>
 
+    <!--  groupId 要跟 maven central 上的 namespace 名字一致  -->
     <groupId>io.github.yuanshenjian-cn</groupId>
     <artifactId>api-rate-limiter-spring-boot-starter</artifactId>
     <version>1.0.0</version>
@@ -37,8 +38,10 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/spring-boot-starter-cn/api-rate-limiter-spring-boot-starter.git</connection>
-        <developerConnection>scm:git:ssh://github.com/spring-boot-starter-cn/api-rate-limiter-spring-boot-starter.git</developerConnection>
+        <connection>scm:git:git://github.com/spring-boot-starter-cn/api-rate-limiter-spring-boot-starter.git
+        </connection>
+        <developerConnection>scm:git:ssh://github.com/spring-boot-starter-cn/api-rate-limiter-spring-boot-starter.git
+        </developerConnection>
         <url>https://github.com/spring-boot-starter-cn/api-rate-limiter-spring-boot-starter</url>
         <tag>HEAD</tag>
     </scm>
