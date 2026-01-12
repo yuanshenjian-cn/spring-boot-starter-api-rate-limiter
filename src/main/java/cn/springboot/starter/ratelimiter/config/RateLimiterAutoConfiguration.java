@@ -1,5 +1,6 @@
 package cn.springboot.starter.ratelimiter.config;
 
+import cn.springboot.starter.ratelimiter.core.handler.RateLimitExceptionHandler;
 import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitScriptFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -45,12 +46,24 @@ public class RateLimiterAutoConfiguration {
     }
 
     /**
-     * 创建限流器属性 Bean
+     * 为漏桶算法创建Redis脚本
      *
-     * @return 限流器属性
+     * @return 漏桶的Redis脚本
      */
     @Bean
-    public RateLimiterProperties rateLimiterProperties() {
-        return new RateLimiterProperties();
+    @ConditionalOnBean(StringRedisTemplate.class)
+    public RedisScript<Long> leakyBucketRedisScript() {
+        return RedisRateLimitScriptFactory.createLeakyBucketScript();
+    }
+
+    /**
+     * 创建限流异常处理器
+     *
+     * @param properties 限流器配置属性
+     * @return 限流异常处理器
+     */
+    @Bean
+    public RateLimitExceptionHandler rateLimitExceptionHandler(RateLimiterProperties properties) {
+        return new RateLimitExceptionHandler(properties);
     }
 }

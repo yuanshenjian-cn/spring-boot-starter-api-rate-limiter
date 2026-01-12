@@ -1,6 +1,8 @@
 package cn.springboot.starter.ratelimiter.demo;
 
-import cn.springboot.starter.ratelimiter.core.RateLimiter;
+import cn.springboot.starter.ratelimiter.core.FixedWindowRateLimiter;
+import cn.springboot.starter.ratelimiter.core.LeakyBucketRateLimiter;
+import cn.springboot.starter.ratelimiter.core.TokenBucketRateLimiter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,59 +16,53 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExampleController {
 
     /**
-     * 测试本地内存限流功能
+     * 测试Redis限流功能 - 令牌桶算法
      *
      * @param userId 用户ID，默认为"1"
      * @return 测试结果字符串
      */
-    @GetMapping("/api/test-local-memory")
-    @RateLimiter(
-        key = "'test-local:' + #userId",
-        algorithm = RateLimiter.Algorithm.TOKEN_BUCKET,
-        storageType = RateLimiter.StorageType.LOCAL_MEMORY,
-        limit = 5,
-        windowSize = 60,
-        message = "本地内存限流：请求过于频繁，请稍后再试"
+    @GetMapping("/api/test-token-bucket")
+    @TokenBucketRateLimiter(
+        key = "'test-token-bucket:' + #userId",
+        capacity = 5,
+        refillRate = 1,
+        message = "Redis令牌桶限流：请求过于频繁，请稍后再试"
     )
-    public String testLocalMemory(@RequestParam(defaultValue = "1") String userId) {
-        return "本地内存限流测试通过，用户ID：" + userId;
+    public String testTokenBucket(@RequestParam(defaultValue = "1") String userId) {
+        return "Redis令牌桶限流测试通过，用户ID：" + userId;
     }
 
     /**
-     * 测试Redis限流功能
+     * 测试Redis限流功能 - 固定窗口算法
      *
      * @param userId 用户ID，默认为"1"
      * @return 测试结果字符串
      */
-    @GetMapping("/api/test-redis")
-    @RateLimiter(
-        key = "'test-redis:' + #userId",
-        algorithm = RateLimiter.Algorithm.FIXED_WINDOW,
-        storageType = RateLimiter.StorageType.REDIS,
+    @GetMapping("/api/test-fixed-window")
+    @FixedWindowRateLimiter(
+        key = "'test-fixed-window:' + #userId",
         limit = 3,
         windowSize = 60,
-        message = "Redis限流：请求过于频繁，请稍后再试"
+        message = "Redis固定窗口限流：请求过于频繁，请稍后再试"
     )
-    public String testRedis(@RequestParam(defaultValue = "1") String userId) {
-        return "Redis限流测试通过，用户ID：" + userId;
+    public String testFixedWindow(@RequestParam(defaultValue = "1") String userId) {
+        return "Redis固定窗口限流测试通过，用户ID：" + userId;
     }
 
     /**
-     * 测试漏水桶限流功能
+     * 测试Redis限流功能 - 漏桶算法
      *
      * @param userId 用户ID，默认为"1"
      * @return 测试结果字符串
      */
     @GetMapping("/api/test-leaky-bucket")
-    @RateLimiter(
-        key = "'test-leaky:' + #userId",
-        algorithm = RateLimiter.Algorithm.LEAKY_BUCKET,
-        storageType = RateLimiter.StorageType.LOCAL_MEMORY,
-        limit = 5,
-        refillRate = 1,
-        message = "漏水桶限流：请求过于频繁，请稍后再试"
+    @LeakyBucketRateLimiter(
+        key = "'test-leaky-bucket:' + #userId",
+        capacity = 5,
+        leakRate = 1,
+        message = "Redis漏桶限流：请求过于频繁，请稍后再试"
     )
     public String testLeakyBucket(@RequestParam(defaultValue = "1") String userId) {
-        return "漏水桶限流测试通过，用户ID：" + userId;
+        return "Redis漏桶限流测试通过，用户ID：" + userId;
     }
 }

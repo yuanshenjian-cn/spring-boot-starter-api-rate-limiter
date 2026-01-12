@@ -64,12 +64,17 @@ public class RedisRateLimitStorage {
      * 漏桶算法判断请求是否被允许
      *
      * @param key 限流键
-     * @param limit 限制数量
+     * @param capacity 桶容量
      * @param leakRate 泄露速率
      * @param permits 许可数量
      * @return 是否允许请求
      */
-    public boolean isAllowedForLeakyBucket(String key, long limit, long leakRate, int permits) {
-        return isAllowed(key, limit, 1, permits);
+    public boolean isAllowedForLeakyBucket(String key, long capacity, long leakRate, int permits) {
+        Long result = redisTemplate.execute(rateLimitScript, List.of(key),
+                String.valueOf(capacity),
+                String.valueOf(leakRate),
+                String.valueOf(permits));
+
+        return result == 1L;
     }
 }

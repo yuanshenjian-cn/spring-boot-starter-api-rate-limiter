@@ -20,7 +20,6 @@ public class RateLimiterProperties {
      */
     private boolean enabled = true;
 
-
     /**
      * 限流的默认限制数量
      */
@@ -35,4 +34,19 @@ public class RateLimiterProperties {
      * 超过限流时返回的默认消息
      */
     private String defaultMessage = "请求过于频繁，请稍后再试";
+
+    /**
+     * 限流异常的HTTP状态码
+     */
+    private int rateLimitHttpStatus = 429;
+
+    /**
+     * Redis连接超时时间（毫秒）
+     */
+    private int redisTimeout = 2000;
+
+    /**
+     * 最大限流键长度，防止恶意长键攻击
+     */
+    private int maxKeyLength = 255;
 }

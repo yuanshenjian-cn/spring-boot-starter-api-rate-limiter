@@ -14,12 +14,6 @@
       "defaultValue": true
     },
     {
-      "name": "rate-limiter.use-redis-by-default",
-      "type": "java.lang.Boolean",
-      "description": "是否默认启用 Redis 存储。如果为 false，则使用本地内存.",
-      "defaultValue": false
-    },
-    {
       "name": "rate-limiter.default-limit",
       "type": "java.lang.Long",
       "description": "限流的默认限制数量.",
@@ -36,6 +30,24 @@
       "type": "java.lang.String",
       "description": "超过限流时返回的默认消息.",
       "defaultValue": "请求过于频繁，请稍后再试"
+    },
+    {
+      "name": "rate-limiter.rate-limit-http-status",
+      "type": "java.lang.Integer",
+      "description": "限流异常的HTTP状态码.",
+      "defaultValue": 429
+    },
+    {
+      "name": "rate-limiter.redis-timeout",
+      "type": "java.lang.Integer",
+      "description": "Redis连接超时时间（毫秒）.",
+      "defaultValue": 2000
+    },
+    {
+      "name": "rate-limiter.max-key-length",
+      "type": "java.lang.Integer",
+      "description": "最大限流键长度，防止恶意长键攻击.",
+      "defaultValue": 255
     }
   ]
 }

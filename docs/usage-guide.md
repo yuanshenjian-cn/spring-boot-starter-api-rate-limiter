@@ -48,11 +48,11 @@ public class UserController {
      * 使用令牌桶算法进行限流
      * 限制每个用户每分钟最多访问5次
      */
-    @RateLimiter(
+    @TokenBucketRateLimiter(
         key = "'user:detail:' + #userId",  // 限流键，支持 SpEL 表达式
-        limit = 5,                         // 限制次数
-        windowSize = 60,                   // 时间窗口（秒）
-        algorithm = RateLimiter.Algorithm.TOKEN_BUCKET   // 限流算法
+        capacity = 5,                      // 桶容量
+        refillRate = 1,                    // 每秒填充1个令牌
+        permits = 1                        // 每个请求消耗1个许可
     )
     @GetMapping("/user/{userId}")
     public ResponseEntity<String> getUserDetail(@PathVariable String userId) {
@@ -63,11 +63,10 @@ public class UserController {
      * 使用固定窗口算法进行限流
      * 限制每个IP地址每小时最多访问100次
      */
-    @RateLimiter(
+    @FixedWindowRateLimiter(
         key = "'ip:access:' + @ipExtractor.getClientIp()",  // 使用SpEL表达式调用bean
-        limit = 100,
-        windowSize = 3600,                 // 1小时
-        algorithm = RateLimiter.Algorithm.FIXED_WINDOW
+        limit = 100,                                        // 限制次数
+        windowSize = 3600                                   // 1小时
     )
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile() {
@@ -78,11 +77,11 @@ public class UserController {
      * 使用漏桶算法进行限流
      * 控制接口调用速率
      */
-    @RateLimiter(
+    @LeakyBucketRateLimiter(
         key = "'api:leaky:' + #operation",
-        limit = 10,
-        refillRate = 2,                    // 每秒泄漏2个请求
-        algorithm = RateLimiter.Algorithm.LEAKY_BUCKET
+        capacity = 10,                      // 桶容量
+        leakRate = 2,                       // 每秒处理2个请求
+        permits = 1                         // 每个请求消耗1个许可
     )
     @GetMapping("/process/{operation}")
     public ResponseEntity<String> processOperation(@PathVariable String operation) {
@@ -139,7 +138,7 @@ public String securedMethod(Authentication authentication) {
 
 ### 重要注意事项
 
-- 本项目只支持 Redis 存储模式，不再支持本地内存模式。
+- 本项目只支持 Redis 存储模式，不支持本地内存模式。
 - 如果在 `@RateLimiter` 注解中使用限流功能，但应用程序未配置 Redis 连接，
   则该限流规则将不会生效，并会在日志中记录警告信息。为确保限流功能正常工作，请确保：
   1. 添加了 Spring Data Redis 依赖

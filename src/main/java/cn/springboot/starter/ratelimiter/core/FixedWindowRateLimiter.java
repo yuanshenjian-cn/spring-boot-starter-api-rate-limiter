@@ -6,14 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * API 限流注解
- * 该注解可以应用于方法上以启用限流功能
+ * 固定窗口限流注解
+ * 该注解可以应用于方法上以启用固定窗口限流功能
  *
  * @author Yuan Shenjian
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RateLimiter {
+public @interface FixedWindowRateLimiter {
 
     /**
      * 限流键，支持 SpEL 表达式
@@ -22,16 +22,10 @@ public @interface RateLimiter {
     String key() default "";
 
     /**
-     * 要使用的限流算法
-     * @return 算法
-     */
-    Algorithm algorithm() default Algorithm.TOKEN_BUCKET;
-
-    /**
      * 限流数据的存储类型
      * @return 存储类型
      */
-    StorageType storageType() default StorageType.REDIS;
+    RateLimiterEnums.StorageType storageType() default RateLimiterEnums.StorageType.REDIS;
 
     /**
      * 时间窗口内允许的最大请求数
@@ -46,18 +40,6 @@ public @interface RateLimiter {
     long windowSize() default 60;
 
     /**
-     * 桶容量（用于令牌桶算法）
-     * @return 桶容量
-     */
-    long capacity() default 10;
-
-    /**
-     * 填充速率（用于令牌桶）或泄漏速率（用于漏桶）
-     * @return 填充/泄漏速率
-     */
-    long refillRate() default 1;
-
-    /**
      * 每个请求所需的许可数量
      * @return 许可数量
      */
@@ -68,24 +50,4 @@ public @interface RateLimiter {
      * @return 错误消息
      */
     String message() default "请求过于频繁，请稍后再试";
-
-    /**
-     * 限流算法的枚举
-     */
-    enum Algorithm {
-        /** 令牌桶算法 */
-        TOKEN_BUCKET,
-        /** 漏桶算法 */
-        LEAKY_BUCKET,
-        /** 固定窗口计数器算法 */
-        FIXED_WINDOW
-    }
-
-    /**
-     * 限流数据存储类型的枚举
-     */
-    enum StorageType {
-        /** Redis 存储 */
-        REDIS
-    }
 }
