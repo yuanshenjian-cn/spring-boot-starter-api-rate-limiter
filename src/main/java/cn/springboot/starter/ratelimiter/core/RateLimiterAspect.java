@@ -1,11 +1,6 @@
 package cn.springboot.starter.ratelimiter.core;
 
-import cn.springboot.starter.ratelimiter.core.algorithm.FixedWindowCounterAlgorithm;
-import cn.springboot.starter.ratelimiter.core.algorithm.LeakyBucketAlgorithm;
-import cn.springboot.starter.ratelimiter.core.algorithm.RateLimitAlgorithm;
-import cn.springboot.starter.ratelimiter.core.algorithm.TokenBucketAlgorithm;
 import cn.springboot.starter.ratelimiter.core.exception.RateLimitException;
-import cn.springboot.starter.ratelimiter.core.storage.InMemoryRateLimitStorage;
 import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitScriptFactory;
 import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitStorage;
 import lombok.extern.slf4j.Slf4j;
@@ -62,10 +57,7 @@ public class RateLimiterAspect {
         Method method = ((MethodSignature) point.getSignature()).getMethod();
         String key = generateKey(method, point.getArgs(), rateLimiter.key());
 
-        boolean allowed = switch (rateLimiter.storageType()) {
-            case LOCAL_MEMORY -> checkLocalMemoryRateLimit(key, rateLimiter);
-            case REDIS -> checkRedisRateLimit(key, rateLimiter);
-        };
+        boolean allowed = checkRedisRateLimit(key, rateLimiter);
 
         if (!allowed) {
             log.warn("限流超出配额，键值: {}", key);
@@ -93,44 +85,6 @@ public class RateLimiterAspect {
         }
     }
 
-    /**
-     * 使用本地内存存储检查限流
-     *
-     * @param key         限流键
-     * @param rateLimiter 限流注解
-     * @return 如果请求被允许则返回 true，否则返回 false
-     */
-    private boolean checkLocalMemoryRateLimit(String key, RateLimiter rateLimiter) {
-        switch (rateLimiter.algorithm()) {
-            case TOKEN_BUCKET:
-                RateLimitAlgorithm tokenBucketAlgorithm = new TokenBucketAlgorithm(
-                        rateLimiter.capacity(),
-                        rateLimiter.refillRate(),
-                        1000
-                );
-                InMemoryRateLimitStorage tokenBucketStorage = new InMemoryRateLimitStorage(tokenBucketAlgorithm);
-                return tokenBucketStorage.isAllowed(key, rateLimiter.permits());
-
-            case LEAKY_BUCKET:
-                RateLimitAlgorithm leakyBucketAlgorithm = new LeakyBucketAlgorithm(
-                        rateLimiter.limit(),
-                        rateLimiter.refillRate()
-                );
-                InMemoryRateLimitStorage leakyBucketStorage = new InMemoryRateLimitStorage(leakyBucketAlgorithm);
-                return leakyBucketStorage.isAllowed(key, rateLimiter.permits());
-
-            case FIXED_WINDOW:
-                RateLimitAlgorithm fixedWindowAlgorithm = new FixedWindowCounterAlgorithm(
-                        rateLimiter.limit(),
-                        rateLimiter.windowSize() * 1000
-                );
-                InMemoryRateLimitStorage fixedWindowStorage = new InMemoryRateLimitStorage(fixedWindowAlgorithm);
-                return fixedWindowStorage.isAllowed(key, rateLimiter.permits());
-
-            default:
-                throw new IllegalArgumentException("Unsupported algorithm: " + rateLimiter.algorithm());
-        }
-    }
 
     /**
      * 使用 Redis 存储检查限流

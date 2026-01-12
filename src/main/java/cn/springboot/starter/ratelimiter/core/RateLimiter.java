@@ -31,7 +31,7 @@ public @interface RateLimiter {
      * 限流数据的存储类型
      * @return 存储类型
      */
-    StorageType storageType() default StorageType.LOCAL_MEMORY;
+    StorageType storageType() default StorageType.REDIS;
 
     /**
      * 时间窗口内允许的最大请求数
@@ -85,8 +85,6 @@ public @interface RateLimiter {
      * 限流数据存储类型的枚举
      */
     enum StorageType {
-        /** 本地内存存储 */
-        LOCAL_MEMORY,
         /** Redis 存储 */
         REDIS
     }

@@ -30,7 +30,6 @@ spring:
 
 rate-limiter:
   enabled: true                           # 是否启用限流，默认 true
-  use-redis-by-default: false             # 是否默认使用Redis存储，false则使用本地内存
   default-limit: 10                       # 默认限制次数
   default-window-size: 60                 # 默认时间窗口（秒）
   default-message: "访问频率过高，请稍后再试"  # 默认限流消息
@@ -53,8 +52,7 @@ public class UserController {
         key = "'user:detail:' + #userId",  // 限流键，支持 SpEL 表达式
         limit = 5,                         // 限制次数
         windowSize = 60,                   // 时间窗口（秒）
-        algorithm = RateLimiter.Algorithm.TOKEN_BUCKET,  // 限流算法
-        storageType = RateLimiter.StorageType.REDIS      // 存储类型
+        algorithm = RateLimiter.Algorithm.TOKEN_BUCKET   // 限流算法
     )
     @GetMapping("/user/{userId}")
     public ResponseEntity<String> getUserDetail(@PathVariable String userId) {
@@ -139,14 +137,10 @@ public String securedMethod(Authentication authentication) {
 }
 ```
 
-### 不同存储类型的使用场景
-
-- **LOCAL_MEMORY**: 适用于单机部署，性能高，但无法在集群环境中共享限流状态
-- **REDIS**: 适用于分布式环境，可以在多个实例间共享限流状态
-
 ### 重要注意事项
 
-- 如果在 `@RateLimiter` 注解中指定了 `storageType = StorageType.REDIS`，但应用程序未配置 Redis 连接，
+- 本项目只支持 Redis 存储模式，不再支持本地内存模式。
+- 如果在 `@RateLimiter` 注解中使用限流功能，但应用程序未配置 Redis 连接，
   则该限流规则将不会生效，并会在日志中记录警告信息。为确保限流功能正常工作，请确保：
   1. 添加了 Spring Data Redis 依赖
   2. 正确配置了 Redis 连接参数
@@ -159,4 +153,4 @@ public String securedMethod(Authentication authentication) {
    - 漏桶：适合控制恒定的输出速率
    - 固定窗口：简单高效，但可能存在临界问题
 3. 合理设置限流参数，避免影响正常业务
-4. 在生产环境中，建议使用 Redis 存储以确保集群一致性
+4. 在生产环境中，必须配置 Redis 以确保限流功能正常工作

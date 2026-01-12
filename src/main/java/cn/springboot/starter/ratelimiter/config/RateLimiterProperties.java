@@ -20,10 +20,6 @@ public class RateLimiterProperties {
      */
     private boolean enabled = true;
 
-    /**
-     * 是否默认启用 Redis 存储。如果为 false，则使用本地内存
-     */
-    private boolean useRedisByDefault = false;
 
     /**
      * 限流的默认限制数量

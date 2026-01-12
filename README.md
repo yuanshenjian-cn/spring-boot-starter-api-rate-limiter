@@ -4,8 +4,8 @@
 
 ## 特性
 
-- **多种限流算法**：支持固定窗口计数器、滑动窗口计数器、令牌桶等多种限流算法
-- **灵活的存储选项**：支持 Redis 作为存储后端，可扩展其他存储方式
+- **多种限流算法**：支持固定窗口计数器、令牌桶、漏桶等多种限流算法
+- **Redis 存储**：使用 Redis 作为存储后端，保证分布式环境下的限流一致性
 - **注解驱动**：通过简单的注解即可实现接口限流
 - **AOP 支持**：基于 Spring AOP 实现，对业务代码无侵入
 - **可配置**：支持通过 application.yml 进行灵活配置，包含配置元数据支持 IDE 自动补全
@@ -50,7 +50,6 @@ spring:
 ```yaml
 rate-limiter:
   enabled: true                           # 是否启用限流，默认 true
-  use-redis-by-default: false             # 是否默认使用Redis存储，false则使用本地内存
   default-limit: 10                       # 默认限制次数
   default-window-size: 60                 # 默认时间窗口（秒）
   default-message: "访问频率过高，请稍后再试"  # 默认限流消息
@@ -68,8 +67,7 @@ public class ApiController {
         key = "'api:user:' + #id",         // 限流键，支持 SpEL 表达式
         limit = 5,                         // 限制次数
         windowSize = 60,                   // 时间窗口（秒）
-        algorithm = RateLimiter.Algorithm.FIXED_WINDOW,  // 限流算法
-        storageType = RateLimiter.StorageType.REDIS      // 存储类型
+        algorithm = RateLimiter.Algorithm.FIXED_WINDOW   // 限流算法
     )
     @GetMapping("/api/user/{id}")
     public String getUser(@PathVariable String id) {
@@ -92,18 +90,19 @@ rate-limiter:
   default:
     limit: 10                      # 默认限制次数
     window: 60                     # 默认时间窗口（秒）
-    algorithm: FIXED_WINDOW_COUNTER # 默认限流算法
-  redis:
-    script-mode: true              # 是否使用 Lua 脚本模式
+    algorithm: FIXED_WINDOW        # 默认限流算法
 ```
 
 ### 注解参数
 
 - `key`: 限流键，支持 SpEL 表达式
 - `limit`: 限制次数
-- `window`: 时间窗口（秒）
-- `algorithm`: 限流算法（FIXED_WINDOW_COUNTER, SLIDING_WINDOW_COUNTER, TOKEN_BUCKET）
-- `fallbackMethod`: 限流触发时的回调方法
+- `windowSize`: 时间窗口（秒）
+- `capacity`: 桶容量（用于令牌桶算法）
+- `refillRate`: 填充速率（用于令牌桶）或泄漏速率（用于漏桶）
+- `permits`: 每个请求所需的许可数量
+- `algorithm`: 限流算法（FIXED_WINDOW, TOKEN_BUCKET, LEAKY_BUCKET）
+- `message`: 超过限流时返回的消息
 
 ## 限流算法
 
@@ -111,29 +110,18 @@ rate-limiter:
 
 在固定的时间窗口内限制请求次数。时间窗口结束后，计数器重置。
 
-### 2. 滑动窗口计数器 (Sliding Window Counter)
-
-更精确的限流算法，将时间窗口划分为多个小窗口，提供更平滑的限流效果。
-
-### 3. 令牌桶 (Token Bucket)
+### 2. 令牌桶 (Token Bucket)
 
 以固定速率向桶中添加令牌，请求需要消耗令牌才能执行。
 
-## 存储选项
+### 3. 漏桶 (Leaky Bucket)
 
-当前版本使用 Redis 作为存储后端，利用 Redis 的高性能和 Lua 脚本保证操作的原子性。
-
-## 扩展性
-
-项目设计具有良好的扩展性，您可以：
-
-- 实现自定义的 `RateLimitStorage` 接口来支持其他存储方式
-- 实现自定义的 `RateLimitAlgorithm` 接口来支持其他限流算法
-- 通过 AOP 扩展限流逻辑
+请求进入桶中，以固定速率从桶中流出，实现平滑的请求处理。
 
 ## 注意事项
 
-- 如果在 `@RateLimiter` 注解中指定了 `storageType = StorageType.REDIS`，但应用程序未配置 Redis 连接，
+- 本项目只支持 Redis 存储模式，不再支持本地内存模式。
+- 如果在 `@RateLimiter` 注解中使用限流功能，但应用程序未配置 Redis 连接，
   则该限流规则将不会生效，并会在日志中记录警告信息。为确保限流功能正常工作，请确保：
   1. 添加了 Spring Data Redis 依赖
   2. 正确配置了 Redis 连接参数
