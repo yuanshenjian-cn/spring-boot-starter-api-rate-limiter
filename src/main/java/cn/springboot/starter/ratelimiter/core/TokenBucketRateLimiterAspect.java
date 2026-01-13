@@ -2,13 +2,12 @@ package cn.springboot.starter.ratelimiter.core;
 
 import cn.springboot.starter.ratelimiter.config.RateLimiterProperties;
 import cn.springboot.starter.ratelimiter.core.exception.RateLimitException;
-import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitScriptFactory;
 import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitStorage;
+import cn.springboot.starter.ratelimiter.core.storage.script.TokenBucketScriptFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -29,15 +28,20 @@ import java.lang.reflect.Method;
 @ConditionalOnProperty(name = "rate-limiter.enabled", havingValue = "true", matchIfMissing = true)
 public class TokenBucketRateLimiterAspect extends AbstractRateLimiterAspect {
 
+    private final RedisScript<Long> tokenBucketScript;
+
     /**
      * 构造函数
      *
      * @param redisTemplate 用于基于 Redis 的限流的 Redis 模板（可以为 null）
      * @param properties 限流器配置属性
+     * @param scriptFactory 令牌桶限流脚本工厂
      */
     public TokenBucketRateLimiterAspect(@Autowired(required = false) StringRedisTemplate redisTemplate,
-                                        RateLimiterProperties properties) {
+                                        RateLimiterProperties properties,
+                                        @Autowired(required = false) TokenBucketScriptFactory scriptFactory) {
         super(redisTemplate, properties, null);
+        this.tokenBucketScript = scriptFactory != null ? scriptFactory.createRateLimitScript() : null;
     }
 
     /**
@@ -67,21 +71,18 @@ public class TokenBucketRateLimiterAspect extends AbstractRateLimiterAspect {
     }
 
     /**
-     * 使用 Redis 存储检查令牌桶限流
+     * 使用 Redis 存储检查令牌桶限流（增强版）
      *
      * @param key         限流键
      * @param rateLimiter 限流注解
      * @return 如果请求被允许则返回 true，否则返回 false
      */
     private boolean checkTokenBucketRateLimit(String key, TokenBucketRateLimiter rateLimiter) {
-        if (redisTemplate == null) {
-            // 如果用户选择了Redis存储但没有配置Redis，则记录警告并拒绝请求
-            log.warn("选择了Redis存储但Redis模板不可用。键值 {} 的限流将失败", key);
-            return false; // 拒绝请求而不是抛出异常
+        if (!checkRedisAndScriptAvailability(key, tokenBucketScript)) {
+            return false;
         }
 
-        RedisScript<Long> tokenBucketScript = RedisRateLimitScriptFactory.createTokenBucketScript();
         RedisRateLimitStorage tokenBucketRedisStorage = new RedisRateLimitStorage(redisTemplate, tokenBucketScript);
-        return tokenBucketRedisStorage.isAllowedForTokenBucket(key, rateLimiter.capacity(), rateLimiter.refillRate(), rateLimiter.permits());
+        return tokenBucketRedisStorage.isAllowedForTokenBucket(key, rateLimiter.capacity(), rateLimiter.refillRate(), rateLimiter.refillIntervalSeconds(), rateLimiter.permits());
     }
 }

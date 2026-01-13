@@ -22,12 +22,6 @@ public @interface FixedWindowRateLimiter {
     String key() default "";
 
     /**
-     * 限流数据的存储类型
-     * @return 存储类型
-     */
-    RateLimiterEnums.StorageType storageType() default RateLimiterEnums.StorageType.REDIS;
-
-    /**
      * 时间窗口内允许的最大请求数
      * @return 限制数量
      */

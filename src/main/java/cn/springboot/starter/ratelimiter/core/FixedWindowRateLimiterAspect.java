@@ -2,8 +2,9 @@ package cn.springboot.starter.ratelimiter.core;
 
 import cn.springboot.starter.ratelimiter.config.RateLimiterProperties;
 import cn.springboot.starter.ratelimiter.core.exception.RateLimitException;
-import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitScriptFactory;
 import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitStorage;
+import cn.springboot.starter.ratelimiter.core.storage.script.FixedWindowCounterScriptFactory;
+import cn.springboot.starter.ratelimiter.core.storage.script.RateLimitScriptFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -29,15 +30,20 @@ import java.lang.reflect.Method;
 @ConditionalOnProperty(name = "rate-limiter.enabled", havingValue = "true", matchIfMissing = true)
 public class FixedWindowRateLimiterAspect extends AbstractRateLimiterAspect {
 
+    private final RedisScript<Long> fixedWindowScript;
+
     /**
      * 构造函数
      *
      * @param redisTemplate 用于基于 Redis 的限流的 Redis 模板（可以为 null）
      * @param properties 限流器配置属性
+     * @param scriptFactory 固定窗口限流脚本工厂
      */
     public FixedWindowRateLimiterAspect(@Autowired(required = false) StringRedisTemplate redisTemplate,
-                                        RateLimiterProperties properties) {
+                                        RateLimiterProperties properties,
+                                        @Autowired(required = false) FixedWindowCounterScriptFactory scriptFactory) {
         super(redisTemplate, properties, null);
+        this.fixedWindowScript = scriptFactory != null ? scriptFactory.createRateLimitScript() : null;
     }
 
     /**
@@ -74,13 +80,10 @@ public class FixedWindowRateLimiterAspect extends AbstractRateLimiterAspect {
      * @return 如果请求被允许则返回 true，否则返回 false
      */
     private boolean checkFixedWindowRateLimit(String key, FixedWindowRateLimiter rateLimiter) {
-        if (redisTemplate == null) {
-            // 如果用户选择了Redis存储但没有配置Redis，则记录警告并拒绝请求
-            log.warn("选择了Redis存储但Redis模板不可用。键值 {} 的限流将失败", key);
-            return false; // 拒绝请求而不是抛出异常
+        if (!checkRedisAndScriptAvailability(key, fixedWindowScript)) {
+            return false;
         }
 
-        RedisScript<Long> fixedWindowScript = RedisRateLimitScriptFactory.createFixedWindowCounterScript();
         RedisRateLimitStorage fixedWindowRedisStorage = new RedisRateLimitStorage(redisTemplate, fixedWindowScript);
         return fixedWindowRedisStorage.isAllowed(key, rateLimiter.limit(), rateLimiter.windowSize(), rateLimiter.permits());
     }

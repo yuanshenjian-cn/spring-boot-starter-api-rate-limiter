@@ -1,7 +1,7 @@
 package cn.springboot.starter.ratelimiter.config;
 
 import cn.springboot.starter.ratelimiter.core.handler.RateLimitExceptionHandler;
-import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitScriptFactory;
+import cn.springboot.starter.ratelimiter.core.storage.script.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
 
 /**
  * API限流器的自动配置
@@ -20,40 +19,62 @@ import org.springframework.data.redis.core.script.RedisScript;
 @Configuration
 @ConditionalOnProperty(prefix = "rate-limiter", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(RateLimiterProperties.class)
-@ComponentScan(basePackages = "cn.springboot.starter.ratelimiter.core")
+@ComponentScan(basePackages = "cn.springboot.starter.ratelimiter")
 public class RateLimiterAutoConfiguration {
 
     /**
-     * 为固定窗口计数器算法创建Redis脚本
+     * 为固定窗口计数器算法创建ScriptFactory
      *
-     * @return 固定窗口计数器的Redis脚本
+     * @return 固定窗口计数器的ScriptFactory
      */
     @Bean
     @ConditionalOnBean(StringRedisTemplate.class)
-    public RedisScript<Long> fixedWindowCounterRedisScript() {
-        return RedisRateLimitScriptFactory.createFixedWindowCounterScript();
+    public FixedWindowCounterScriptFactory fixedWindowCounterScriptFactory() {
+        return new FixedWindowCounterScriptFactory();
     }
 
     /**
-     * 为令牌桶算法创建Redis脚本
+     * 为令牌桶算法创建ScriptFactory
      *
-     * @return 令牌桶的Redis脚本
+     * @return 令牌桶的ScriptFactory
      */
     @Bean
     @ConditionalOnBean(StringRedisTemplate.class)
-    public RedisScript<Long> tokenBucketRedisScript() {
-        return RedisRateLimitScriptFactory.createTokenBucketScript();
+    public TokenBucketScriptFactory tokenBucketScriptFactory() {
+        return new TokenBucketScriptFactory();
     }
 
     /**
-     * 为漏桶算法创建Redis脚本
+     * 为漏桶算法创建ScriptFactory
      *
-     * @return 漏桶的Redis脚本
+     * @return 漏桶的ScriptFactory
      */
     @Bean
     @ConditionalOnBean(StringRedisTemplate.class)
-    public RedisScript<Long> leakyBucketRedisScript() {
-        return RedisRateLimitScriptFactory.createLeakyBucketScript();
+    public LeakyBucketScriptFactory leakyBucketScriptFactory() {
+        return new LeakyBucketScriptFactory();
+    }
+
+    /**
+     * 为滑动窗口日志算法创建ScriptFactory
+     *
+     * @return 滑动窗口日志的ScriptFactory
+     */
+    @Bean
+    @ConditionalOnBean(StringRedisTemplate.class)
+    public SlidingWindowLogScriptFactory slidingWindowLogScriptFactory() {
+        return new SlidingWindowLogScriptFactory();
+    }
+
+    /**
+     * 为滑动窗口计数器算法创建ScriptFactory
+     *
+     * @return 滑动窗口计数器的ScriptFactory
+     */
+    @Bean
+    @ConditionalOnBean(StringRedisTemplate.class)
+    public SlidingWindowCounterScriptFactory slidingWindowCounterScriptFactory() {
+        return new SlidingWindowCounterScriptFactory();
     }
 
     /**

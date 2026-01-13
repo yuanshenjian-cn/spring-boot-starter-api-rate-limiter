@@ -43,6 +43,25 @@ public class RedisRateLimitStorage {
     }
 
     /**
+     * 滑动窗口算法判断请求是否被允许（带子窗口参数）
+     *
+     * @param key 限流键
+     * @param limit 限制数量
+     * @param windowSizeInSeconds 窗口大小（秒）
+     * @param subWindows 子窗口数量
+     * @param permits 许可数量
+     * @return 是否允许请求
+     */
+    public boolean isAllowedWithSubWindows(String key, long limit, long windowSizeInSeconds, int subWindows, int permits) {
+        Long result = redisTemplate.execute(rateLimitScript, List.of(key),
+                String.valueOf(limit),
+                String.valueOf(windowSizeInSeconds),
+                String.valueOf(subWindows),
+                String.valueOf(permits));
+        return result == 1L;
+    }
+
+    /**
      * 令牌桶算法判断请求是否被允许
      *
      * @param key 限流键
@@ -55,6 +74,26 @@ public class RedisRateLimitStorage {
         Long result = redisTemplate.execute(rateLimitScript, List.of(key),
                 String.valueOf(capacity),
                 String.valueOf(refillRate),
+                String.valueOf(permits));
+
+        return result == 1L;
+    }
+
+    /**
+     * 令牌桶算法判断请求是否被允许（增强版）
+     *
+     * @param key 限流键
+     * @param capacity 桶容量
+     * @param refillAmount 填充数量
+     * @param refillIntervalSeconds 填充间隔（秒）
+     * @param permits 许可数量
+     * @return 是否允许请求
+     */
+    public boolean isAllowedForTokenBucket(String key, long capacity, long refillAmount, long refillIntervalSeconds, int permits) {
+        Long result = redisTemplate.execute(rateLimitScript, List.of(key),
+                String.valueOf(capacity),
+                String.valueOf(refillAmount),
+                String.valueOf(refillIntervalSeconds),
                 String.valueOf(permits));
 
         return result == 1L;

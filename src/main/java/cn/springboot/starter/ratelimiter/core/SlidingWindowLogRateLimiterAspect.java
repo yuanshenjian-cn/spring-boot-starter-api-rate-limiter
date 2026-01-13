@@ -3,12 +3,11 @@ package cn.springboot.starter.ratelimiter.core;
 import cn.springboot.starter.ratelimiter.config.RateLimiterProperties;
 import cn.springboot.starter.ratelimiter.core.exception.RateLimitException;
 import cn.springboot.starter.ratelimiter.core.storage.RedisRateLimitStorage;
-import cn.springboot.starter.ratelimiter.core.storage.script.LeakyBucketScriptFactory;
+import cn.springboot.starter.ratelimiter.core.storage.script.SlidingWindowLogScriptFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -18,8 +17,8 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 
 /**
- * 漏桶限流切面
- * 该切面拦截标记了漏桶限流注解的方法并应用限流逻辑
+ * 滑动窗口日志限流切面
+ * 该切面拦截标记了滑动窗口日志限流注解的方法并应用限流逻辑
  *
  * @author Yuan Shenjian
  */
@@ -27,26 +26,26 @@ import java.lang.reflect.Method;
 @Component
 @Slf4j
 @ConditionalOnProperty(name = "rate-limiter.enabled", havingValue = "true", matchIfMissing = true)
-public class LeakyBucketRateLimiterAspect extends AbstractRateLimiterAspect {
+public class SlidingWindowLogRateLimiterAspect extends AbstractRateLimiterAspect {
 
-    private final RedisScript<Long> leakyBucketScript;
+    private final RedisScript<Long> slidingWindowLogScript;
 
     /**
      * 构造函数
      *
      * @param redisTemplate 用于基于 Redis 的限流的 Redis 模板（可以为 null）
      * @param properties 限流器配置属性
-     * @param scriptFactory 漏桶限流脚本工厂
+     * @param scriptFactory 滑动窗口日志限流脚本工厂
      */
-    public LeakyBucketRateLimiterAspect(@Autowired(required = false) StringRedisTemplate redisTemplate,
-                                        RateLimiterProperties properties,
-                                        @Autowired(required = false) LeakyBucketScriptFactory scriptFactory) {
+    public SlidingWindowLogRateLimiterAspect(@Autowired(required = false) StringRedisTemplate redisTemplate,
+                                           RateLimiterProperties properties,
+                                           @Autowired(required = false) SlidingWindowLogScriptFactory scriptFactory) {
         super(redisTemplate, properties, null);
-        this.leakyBucketScript = scriptFactory != null ? scriptFactory.createRateLimitScript() : null;
+        this.slidingWindowLogScript = scriptFactory != null ? scriptFactory.createRateLimitScript() : null;
     }
 
     /**
-     * 拦截漏桶限流注解的方法调用并应用限流逻辑
+     * 拦截滑动窗口日志限流注解的方法调用并应用限流逻辑
      *
      * @param point        表示被拦截方法的连接点
      * @param rateLimiter 限流注解
@@ -54,16 +53,16 @@ public class LeakyBucketRateLimiterAspect extends AbstractRateLimiterAspect {
      * @throws Throwable 如果被拦截方法抛出异常
      */
     @Around("@annotation(rateLimiter)")
-    public Object around(ProceedingJoinPoint point, LeakyBucketRateLimiter rateLimiter) throws Throwable {
+    public Object around(ProceedingJoinPoint point, SlidingWindowLogRateLimiter rateLimiter) throws Throwable {
         Method method = getMethod(point);
         String key = generateKey(method, point.getArgs(), rateLimiter.key());
 
         long startTime = System.nanoTime();
-        boolean allowed = checkLeakyBucketRateLimit(key, rateLimiter);
+        boolean allowed = checkSlidingWindowLogRateLimit(key, rateLimiter);
         long executionTime = System.nanoTime() - startTime;
 
         if (!allowed) {
-            log.warn("漏桶限流超出配额，键值: {}", key);
+            log.warn("滑动窗口日志限流超出配额，键值: {}", key);
 
             throw new RateLimitException(rateLimiter.message());
         }
@@ -72,18 +71,18 @@ public class LeakyBucketRateLimiterAspect extends AbstractRateLimiterAspect {
     }
 
     /**
-     * 使用 Redis 存储检查漏桶限流
+     * 使用 Redis 存储检查滑动窗口日志限流
      *
      * @param key         限流键
      * @param rateLimiter 限流注解
      * @return 如果请求被允许则返回 true，否则返回 false
      */
-    private boolean checkLeakyBucketRateLimit(String key, LeakyBucketRateLimiter rateLimiter) {
-        if (!checkRedisAndScriptAvailability(key, leakyBucketScript)) {
+    private boolean checkSlidingWindowLogRateLimit(String key, SlidingWindowLogRateLimiter rateLimiter) {
+        if (!checkRedisAndScriptAvailability(key, slidingWindowLogScript)) {
             return false;
         }
 
-        RedisRateLimitStorage leakyBucketRedisStorage = new RedisRateLimitStorage(redisTemplate, leakyBucketScript);
-        return leakyBucketRedisStorage.isAllowedForLeakyBucket(key, rateLimiter.capacity(), rateLimiter.leakRate(), rateLimiter.permits());
+        RedisRateLimitStorage slidingWindowLogRedisStorage = new RedisRateLimitStorage(redisTemplate, slidingWindowLogScript);
+        return slidingWindowLogRedisStorage.isAllowed(key, rateLimiter.limit(), rateLimiter.windowSize(), rateLimiter.permits());
     }
 }

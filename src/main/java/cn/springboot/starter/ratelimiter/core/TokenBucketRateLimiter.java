@@ -6,8 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 令牌桶限流注解
+ * 令牌桶限流注解（增强版）
  * 该注解可以应用于方法上以启用令牌桶限流功能
+ * 支持更灵活的时间单位配置，如每分钟、每小时、每天等
  *
  * @author Yuan Shenjian
  */
@@ -22,22 +23,22 @@ public @interface TokenBucketRateLimiter {
     String key() default "";
 
     /**
-     * 限流数据的存储类型
-     * @return 存储类型
-     */
-    RateLimiterEnums.StorageType storageType() default RateLimiterEnums.StorageType.REDIS;
-
-    /**
      * 桶容量（最大令牌数）
      * @return 桶容量
      */
     long capacity() default 10;
 
     /**
-     * 填充速率（每秒填充的令牌数）
+     * 填充速率（在指定时间单位内填充的令牌数）
      * @return 填充速率
      */
     long refillRate() default 1;
+
+    /**
+     * 填充时间单位（秒）
+     * @return 时间单位（秒）
+     */
+    long refillIntervalSeconds() default 1;
 
     /**
      * 每个请求所需的许可数量

@@ -2,8 +2,9 @@ package cn.springboot.starter.ratelimiter.core.handler;
 
 import cn.springboot.starter.ratelimiter.config.RateLimiterProperties;
 import cn.springboot.starter.ratelimiter.core.exception.RateLimitException;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestControllerAdvice
-@RequiredArgsConstructor
+@AllArgsConstructor
 @ConditionalOnProperty(name = "rate-limiter.enabled", havingValue = "true", matchIfMissing = true)
 public class RateLimitExceptionHandler {
 
@@ -42,9 +43,9 @@ public class RateLimitExceptionHandler {
         response.put("error", "RATE_LIMIT_EXCEEDED");
         response.put("message", ex.getMessage());
         response.put("timestamp", Instant.now());
-        response.put("status", properties.getRateLimitHttpStatus());
+        response.put("status", 429); // 使用标准的429状态码
 
-        HttpStatus status = HttpStatus.valueOf(properties.getRateLimitHttpStatus());
+        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS; // 使用标准的TOO_MANY_REQUESTS状态
         return ResponseEntity.status(status).body(response);
     }
 }

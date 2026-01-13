@@ -7,6 +7,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.StandardReflectionParameterNameDiscoverer;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -40,6 +41,22 @@ public abstract class AbstractRateLimiterAspect {
                                     Object metricsCollector) {
         this.redisTemplate = redisTemplate;
         this.properties = properties;
+    }
+
+    /**
+     * 检查Redis模板和脚本是否可用
+     *
+     * @param key 限流键
+     * @param script Redis脚本
+     * @return 如果可用返回true，否则返回false
+     */
+    protected boolean checkRedisAndScriptAvailability(String key, RedisScript<?> script) {
+        if (redisTemplate == null || script == null) {
+            // 如果用户选择了Redis存储但没有配置Redis，则记录警告并拒绝请求
+            log.warn("选择了Redis存储但Redis模板或脚本不可用。键值 {} 的限流将失败", key);
+            return false; // 拒绝请求而不是抛出异常
+        }
+        return true;
     }
 
     /**

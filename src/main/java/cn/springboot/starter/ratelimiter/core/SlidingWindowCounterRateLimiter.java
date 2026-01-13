@@ -6,14 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 漏桶限流注解
- * 该注解可以应用于方法上以启用漏桶限流功能
+ * 滑动窗口计数器限流注解
+ * 该注解可以应用于方法上以启用滑动窗口计数器限流功能
  *
  * @author Yuan Shenjian
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface LeakyBucketRateLimiter {
+public @interface SlidingWindowCounterRateLimiter {
 
     /**
      * 限流键，支持 SpEL 表达式
@@ -22,16 +22,22 @@ public @interface LeakyBucketRateLimiter {
     String key() default "";
 
     /**
-     * 桶容量（最大请求数）
-     * @return 桶容量
+     * 时间窗口内允许的最大请求数
+     * @return 限制数量
      */
-    long capacity() default 10;
+    long limit() default 10;
 
     /**
-     * 泄漏速率（每秒处理请求数）
-     * @return 泄漏速率
+     * 时间窗口大小（单位：秒）
+     * @return 窗口大小（秒）
      */
-    long leakRate() default 1;
+    long windowSize() default 60;
+
+    /**
+     * 滑动窗口细分的数量（将大窗口分成多少个小窗口）
+     * @return 细分数量
+     */
+    int subWindows() default 10;
 
     /**
      * 每个请求所需的许可数量
