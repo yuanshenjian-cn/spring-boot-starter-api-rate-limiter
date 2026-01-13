@@ -1,11 +1,8 @@
 package cn.springboot.starter.ratelimiter.core.handler;
 
-import cn.springboot.starter.ratelimiter.config.RateLimiterProperties;
 import cn.springboot.starter.ratelimiter.core.exception.RateLimitException;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,13 +19,8 @@ import java.util.Map;
  * @author Yuan Shenjian
  */
 @Slf4j
-@AllArgsConstructor
-@ConditionalOnProperty(prefix = "rate-limiter", name = "enabled", havingValue = "true", matchIfMissing = true)
 @RestControllerAdvice
 public class RateLimitExceptionHandler {
-
-    private final RateLimiterProperties properties;
-
     /**
      * 处理限流异常
      *
@@ -43,9 +35,9 @@ public class RateLimitExceptionHandler {
         response.put("error", "RATE_LIMIT_EXCEEDED");
         response.put("message", ex.getMessage());
         response.put("timestamp", Instant.now());
-        response.put("status", 429); // 使用标准的429状态码
+        response.put("status", 429);
 
-        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS; // 使用标准的TOO_MANY_REQUESTS状态
+        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
         return ResponseEntity.status(status).body(response);
     }
 }
