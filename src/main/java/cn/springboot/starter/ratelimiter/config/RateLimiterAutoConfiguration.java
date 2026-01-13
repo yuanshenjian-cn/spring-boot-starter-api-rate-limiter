@@ -69,15 +69,4 @@ public class RateLimiterAutoConfiguration {
     public SlidingWindowCounterScriptFactory slidingWindowCounterScriptFactory() {
         return new SlidingWindowCounterScriptFactory();
     }
-
-    /**
-     * 创建限流异常处理器
-     *
-     * @param properties 限流器配置属性
-     * @return 限流异常处理器
-     */
-    @Bean
-    public RateLimitExceptionHandler rateLimitExceptionHandler(RateLimiterProperties properties) {
-        return new RateLimitExceptionHandler(properties);
-    }
 }

@@ -22,9 +22,9 @@ import java.util.Map;
  * @author Yuan Shenjian
  */
 @Slf4j
-@RestControllerAdvice
 @AllArgsConstructor
-@ConditionalOnProperty(name = "rate-limiter.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "rate-limiter", name = "enabled", havingValue = "true", matchIfMissing = true)
+@RestControllerAdvice
 public class RateLimitExceptionHandler {
 
     private final RateLimiterProperties properties;
