@@ -2,13 +2,11 @@ package cn.springboot.starter.ratelimiter.config;
 
 import cn.springboot.starter.ratelimiter.core.handler.RateLimitExceptionHandler;
 import cn.springboot.starter.ratelimiter.core.storage.script.*;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * API限流器的自动配置
@@ -28,7 +26,6 @@ public class RateLimiterAutoConfiguration {
      * @return 固定窗口计数器的ScriptFactory
      */
     @Bean
-    @ConditionalOnBean(StringRedisTemplate.class)
     public FixedWindowCounterScriptFactory fixedWindowCounterScriptFactory() {
         return new FixedWindowCounterScriptFactory();
     }
@@ -39,7 +36,6 @@ public class RateLimiterAutoConfiguration {
      * @return 令牌桶的ScriptFactory
      */
     @Bean
-    @ConditionalOnBean(StringRedisTemplate.class)
     public TokenBucketScriptFactory tokenBucketScriptFactory() {
         return new TokenBucketScriptFactory();
     }
@@ -50,7 +46,6 @@ public class RateLimiterAutoConfiguration {
      * @return 漏桶的ScriptFactory
      */
     @Bean
-    @ConditionalOnBean(StringRedisTemplate.class)
     public LeakyBucketScriptFactory leakyBucketScriptFactory() {
         return new LeakyBucketScriptFactory();
     }
@@ -61,7 +56,6 @@ public class RateLimiterAutoConfiguration {
      * @return 滑动窗口日志的ScriptFactory
      */
     @Bean
-    @ConditionalOnBean(StringRedisTemplate.class)
     public SlidingWindowLogScriptFactory slidingWindowLogScriptFactory() {
         return new SlidingWindowLogScriptFactory();
     }
@@ -72,7 +66,6 @@ public class RateLimiterAutoConfiguration {
      * @return 滑动窗口计数器的ScriptFactory
      */
     @Bean
-    @ConditionalOnBean(StringRedisTemplate.class)
     public SlidingWindowCounterScriptFactory slidingWindowCounterScriptFactory() {
         return new SlidingWindowCounterScriptFactory();
     }

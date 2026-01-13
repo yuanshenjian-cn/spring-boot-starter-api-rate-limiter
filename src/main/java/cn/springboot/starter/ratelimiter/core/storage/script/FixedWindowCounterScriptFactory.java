@@ -1,5 +1,6 @@
 package cn.springboot.starter.ratelimiter.core.storage.script;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 
