@@ -13,7 +13,7 @@
     <!--  groupId 要跟 maven central 上的 namespace 名字一致  -->
     <groupId>io.github.yuanshenjian-cn</groupId>
     <artifactId>api-rate-limiter-spring-boot-starter</artifactId>
-    <version>1.0.11</version>
+    <version>1.0.12</version>
     <packaging>jar</packaging>
     <name>API Rate Limiter Spring Boot Starter</name>
     <description>A Spring Boot Starter for API rate limiting with multiple algorithms and storage options</description>
@@ -54,7 +54,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Dependency versions -->
-        <lombok.version>1.18.34</lombok.version>
+        <lombok.version>1.18.38</lombok.version>
     </properties>
 
     <dependencies>

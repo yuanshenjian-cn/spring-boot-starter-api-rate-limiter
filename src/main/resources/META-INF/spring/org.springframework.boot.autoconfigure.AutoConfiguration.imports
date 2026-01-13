@@ -1,1 +1,1 @@
-cn.springboot.starter.ratelimiter.config.RateLimiterAutoConfiguration
+cn.springboot.starter.api_rate_limiter.config.RateLimiterAutoConfiguration
